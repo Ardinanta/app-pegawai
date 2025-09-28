@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
 use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
@@ -11,7 +12,9 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        //
+        $employees = Employee::latest()->paginate(5);
+
+        return View('employee.index', compact('employees'));
     }
 
     /**
@@ -19,7 +22,7 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        //
+        return view('employee.create');
     }
 
     /**
@@ -27,7 +30,17 @@ class EmployeeController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nama_lengkap' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'nomor_telepon' => 'required|string|max:20',
+            'tanggal_lahir' => 'required|Date',
+            'alamat' => 'required|string|max:255',
+            'tanggal_masuk' => 'required|Date',
+            'status' => 'required|string|max:50',
+        ]);
+        Employee::create($request->all());
+        return redirect()->route('employees.index');
     }
 
     /**
@@ -35,7 +48,8 @@ class EmployeeController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $employee = Employee::find($id);
+        return view('employee.show', compact('employee'));
     }
 
     /**
@@ -59,6 +73,8 @@ class EmployeeController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $employee = Employee::find($id);
+        $employee->delete();
+        return redirect()->route('employees.index');
     }
 }
