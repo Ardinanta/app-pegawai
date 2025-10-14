@@ -14,7 +14,6 @@ return new class extends Migration
     {
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('karyawan_id')->constrained('employees')->onDelete('cascade');
             $table->date('tanggal');
             $table->time('waktu_masuk');
             $table->time('waktu_keluar');
