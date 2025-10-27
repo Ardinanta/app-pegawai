@@ -1,0 +1,64 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold text-gray-800">Edit Absensi Karyawan</h2>
+        <a href="{{ route('attendances.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-300">
+            Kembali
+        </a>
+    </div>
+
+    @if ($errors->any())
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong>Ups!</strong> Terjadi kesalahan:<br><br>
+            <ul class="list-disc pl-5">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form action="{{ route('attendances.update', $attendance->id) }}" method="POST">
+        @csrf
+        @method('PUT')
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="karyawan_id" class="block text-gray-700 text-sm font-bold mb-2">Pilih Karyawan:</label>
+                <select name="karyawan_id" id="karyawan_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    @foreach($employees as $employee)
+                        <option value="{{ $employee->id }}" {{ $attendance->karyawan_id == $employee->id ? 'selected' : '' }}>{{ $employee->nama_lengkap }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="waktu_masuk" class="block text-gray-700 text-sm font-bold mb-2">Waktu Masuk (Jika Hadir):</label>
+                <input type="time" name="waktu_masuk" id="waktu_masuk" value="{{ $attendance->waktu_masuk ? \Carbon\Carbon::parse($attendance->waktu_masuk)->format('H:i') : '' }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label for="status_absensi" class="block text-gray-700 text-sm font-bold mb-2">Status Kehadiran:</label>
+                <select name="status_absensi" id="status_absensi" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    @foreach($statuses as $status)
+                        <option value="{{ $status }}" {{ $attendance->status_absensi == $status ? 'selected' : '' }}>{{ $status }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="waktu_keluar" class="block text-gray-700 text-sm font-bold mb-2">Waktu Keluar (Opsional):</label>
+                <input type="time" name="waktu_keluar" id="waktu_keluar" value="{{ $attendance->waktu_keluar ? \Carbon\Carbon::parse($attendance->waktu_keluar)->format('H:i') : '' }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label for="tanggal" class="block text-gray-700 text-sm font-bold mb-2">Tanggal:</label>
+                <input type="date" name="tanggal" id="tanggal" value="{{ $attendance->tanggal }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+        </div>
+
+        <div class="text-right mt-6">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300">
+                Update
+            </button>
+        </div>
+    </form>
+</div>
+@endsection
