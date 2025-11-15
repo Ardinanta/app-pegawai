@@ -7,9 +7,14 @@ use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $departments = Department::all();
+        $departments = Department::query()
+            ->search($request) // <-- 3. PANGGIL SCOPE-NYA DI SINI
+            ->latest()
+            ->paginate(10)
+            ->appends($request->query());
+
         return view('department.index', compact('departments'));
     }
 

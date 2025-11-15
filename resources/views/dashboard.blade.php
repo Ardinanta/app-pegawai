@@ -1,67 +1,321 @@
 @extends('layouts.app')
 
 @section('content')
-    {{-- Header Halaman --}}
-    <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Dashboard</h1>
+    {{-- <h2 class="text-2xl font-bold text-gray-800 mb-6 px-6">Dashboard</h2> --}}
 
-    {{-- Awal dari Kartu Statistik --}}
-    <div class="py-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
-            <div class="flex-shrink-0 bg-blue-100 p-3 rounded-full">
-                {{-- Ikon Users dari Heroicons --}}
-                <svg class="w-8 h-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM8.25 10.125a2.625 2.625 0 115.25 0 2.625 2.625 0 01-5.25 0z" />
-                </svg>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500 uppercase">Total Karyawan</p>
-                <p class="text-3xl font-bold text-gray-900">{{ $totalEmployees }}</p>
+        <div class="bg-white p-6 rounded-lg shadow-xl">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Karyawan Tidak Hadir Hari Ini</h2>
+
+            <div class="space-y-4">
+                @forelse($absentToday as $attendance)
+                    <div class="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-50">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                            <span class="text-xl font-bold text-gray-600">
+                                {{ strtoupper(substr($attendance->employee->nama_lengkap, 0, 1)) }}
+                            </span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-base font-bold text-gray-900">{{ $attendance->employee->nama_lengkap }}</p>
+                            <p class="text-sm text-gray-600 font-medium">
+                                {{ $attendance->employee->department->nama_departemen }}</p>
+                            <p class="text-sm text-gray-500">{{ $attendance->employee->position->nama_jabatan }}</p>
+                        </div>
+                        <div class="text-right">
+                            @php
+                                $status = $attendance->status_absensi;
+                                $color =
+                                    $status == 'sakit' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800';
+                            @endphp
+                            <span class="px-4 py-2 font-bold leading-tight rounded-lg text-sm {{ $color }}">
+                                {{ ucfirst($status) }}
+                            </span>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-gray-500 text-center py-4">Semua karyawan hadir hari ini. 👍</p>
+                @endforelse
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
-            <div class="flex-shrink-0 bg-green-100 p-3 rounded-full">
-                {{-- Ikon Check Badge dari Heroicons --}}
-                <svg class="w-8 h-8 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500 uppercase">Hadir Hari Ini</p>
-                <p class="text-3xl font-bold text-gray-900">{{ $presentToday }}</p>
+        <div class="bg-white p-6 rounded-lg shadow-xl">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Ringkasan Kehadiran Hari Ini</h2>
+
+            @php
+                // Ambil data dari controller, beri nilai default 0 jika tidak ada
+                $hadir = $attendanceSummary['hadir'] ?? 0;
+                $sakit = $attendanceSummary['sakit'] ?? 0;
+                $izin = $attendanceSummary['izin'] ?? 0;
+                $alpha = $attendanceSummary['alpha'] ?? 0;
+                $totalKaryawan = $totalEmployees; // Ambil dari stat card
+                $belumAbsen = $totalKaryawan - ($hadir + $sakit + $izin + $alpha);
+            @endphp
+
+            <div class="space-y-5 mt-6">
+                <div class="flex justify-between items-center">
+                    <span class="text-lg font-medium text-gray-700">Hadir</span>
+                    <span class="text-2xl font-bold text-blue-500">{{ $hadir }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-lg font-medium text-gray-700">Sakit</span>
+                    <span class="text-2xl font-bold text-blue-500">{{ $sakit }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-lg font-medium text-gray-700">Izin</span>
+                    <span class="text-2xl font-bold text-blue-500">{{ $izin }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-lg font-medium text-gray-700">Alpha</span>
+                    <span class="text-2xl font-bold text-blue-500">{{ $alpha }}</span>
+                </div>
+                <div class="border-t border-gray-200 pt-5">
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-medium text-gray-700">Belum Absen</span>
+                        <span class="text-2xl font-bold text-gray-400">{{ $belumAbsen }}</span>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
-            <div class="flex-shrink-0 bg-indigo-100 p-3 rounded-full">
-                {{-- Ikon Building Office dari Heroicons --}}
-                <svg class="w-8 h-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h6.75M9 10.5h6.75M9 14.25h6.75M9 18h6.75" />
-                </svg>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500 uppercase">Total Departemen</p>
-                <p class="text-3xl font-bold text-gray-900">{{ $totalDepartments }}</p>
-            </div>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
-            <div class="flex-shrink-0 bg-yellow-100 p-3 rounded-full">
-                {{-- Ikon Briefcase dari Heroicons --}}
-                <svg class="w-8 h-8 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.07a2.25 2.25 0 01-2.25 2.25H5.625a2.25 2.25 0 01-2.25-2.25v-4.07m16.5 0v.217a2.25 2.25 0 01-2.25 2.25h-5.379a2.25 2.25 0 01-2.25-2.25V14.15M20.25 14.15M18 14.15v.217A2.25 2.25 0 0015.75 16.5h-5.379a2.25 2.25 0 00-2.25-2.25V14.15m6.621 0v1.125c0 .621-.504 1.125-1.125 1.125H9.375c-.621 0-1.125-.504-1.125-1.125V14.15m0 0a2.25 2.25 0 012.25-2.25h3.375a2.25 2.25 0 012.25 2.25m0 0c0 .621-.504 1.125-1.125 1.125h-3.375c-.621 0-1.125-.504-1.125-1.125m0 0c.621 0 1.125.504 1.125 1.125h.008c.621 0 1.125-.504 1.125-1.125h.008c.621 0 1.125.504 1.125 1.125h.008c.621 0 1.125-.504 1.125-1.125h.008a2.25 2.25 0 012.25 2.25v.217M8.25 14.15v.217a2.25 2.25 0 01-2.25 2.25H5.625a2.25 2.25 0 01-2.25-2.25V14.15m16.5 0a2.25 2.25 0 00-2.25-2.25h-5.379a2.25 2.25 0 00-2.25 2.25M3.75 11.85c0-1.12 1.56-2.06 3.486-2.06h9.028c1.926 0 3.486.94 3.486 2.06M3.75 11.85v2.25A2.25 2.25 0 006 16.5h.375m13.125 0h.375a2.25 2.25 0 002.25-2.25V11.85" />
-                </svg>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500 uppercase">Total Jabatan</p>
-                <p class="text-3xl font-bold text-gray-900">{{ $totalPositions }}</p>
-            </div>
-        </div>
-
     </div>
-    {{-- Akhir dari Kartu Statistik --}}
+    {{-- BARIS SELANJUTNYA  --}}
+    <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-    {{-- Di sini Anda bisa menambahkan komponen dashboard lainnya (Widget, Chart, dll) --}}
+        <div class="bg-white p-6 rounded-lg shadow-xl relative">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Karyawan per Dept.</h2>
+            <div class="w-full max-w-lg mx-auto min-h-[300px] flex items-center justify-center">
+                <canvas id="departmentChart"></canvas>
+            </div>
+        </div>
 
+        <div class="bg-white p-6 rounded-lg shadow-xl relative">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Tren Kehadiran (30 Hari)</h2>
+            <div class="w-full mx-auto min-h-[300px] flex items-center justify-center">
+                <canvas id="attendanceTrendChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-xl relative">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Gaji per Dept. (Bulan Lalu)</h2>
+            <div class="w-full mx-auto min-h-[300px] flex items-center justify-center">
+                <canvas id="salaryByDeptChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // =============================================
+            // SKRIP UNTUK PIE CHART (Karyawan per Dept)
+            // =============================================
+            try {
+                const pieLabels = @json($chartLabels);
+                const pieData = @json($chartData);
+                const pieCtx = document.getElementById('departmentChart').getContext('2d');
+
+                const totalEmployees = @json($totalEmployees);
+
+                const centerTextPlugin = {
+                    id: 'centerText',
+                    beforeDraw: (chart) => {
+                        if (chart.config.type !== 'doughnut') return;
+
+                        const ctx = chart.ctx;
+                        ctx.restore();
+
+                        // Ambil posisi tengah doughnut secara akurat
+                        const xCenter = chart.getDatasetMeta(0).data[0].x;
+                        const yCenter = chart.getDatasetMeta(0).data[0].y;
+
+                        // Teks 1: "Total Karyawan"
+                        ctx.font = '16px Poppins';
+                        ctx.fillStyle = '#6B7280'; // text-gray-500
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('Total Karyawan', xCenter, yCenter - 15); // Sesuaikan offset Y
+
+                        // Teks 2: Angka Total
+                        ctx.font = 'bold 32px Poppins';
+                        ctx.fillStyle = '#1F2937'; // text-gray-800
+                        ctx.fillText(totalEmployees, xCenter, yCenter + 15); // Sesuaikan offset Y
+
+                        ctx.save();
+                    }
+                };
+
+                const backgroundColors = [
+                    '#4299E1', '#48BB78', '#F6E05E', '#FC8181', '#805AD5',
+                    '#ED8936', '#4FD1C5', '#F6AD55', '#667EEA', '#718096'
+                ];
+
+                new Chart(pieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: pieLabels,
+                        datasets: [{
+                            label: 'Jumlah Karyawan',
+                            data: pieData,
+                            backgroundColor: backgroundColors.slice(0, pieLabels.length),
+                            borderColor: '#ffffff',
+                            borderWidth: 2,
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        // Memotong lubang di tengah (0% = pie, 50% = default doughnut)
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    font: {
+                                        size: 14,
+                                        family: 'Poppins'
+                                    },
+                                    color: '#4A5568'
+                                }
+                            },
+                            tooltip: {
+                                /* ... (opsi tooltip Anda) ... */
+                            }
+                        },
+                        layout: {
+                            padding: 10
+                        }
+                    },
+                    // 👇 DAFTARKAN PLUGIN BARU ANDA DI SINI 👇
+                    plugins: [centerTextPlugin]
+                });
+            } catch (e) {
+                console.error('Gagal me-render Pie Chart:', e);
+            }
+
+            // =============================================
+            // SKRIP UNTUK LINE CHART (Tren Kehadiran)
+            // =============================================
+            try {
+                const trendLabels = @json($trendLabels);
+                const trendData = @json($trendData);
+                // ... (sisa kode line chart Anda tidak berubah) ...
+                const trendCtx = document.getElementById('attendanceTrendChart').getContext('2d');
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: trendLabels,
+                        datasets: [{
+                            label: 'Jumlah Kehadiran',
+                            data: trendData,
+                            fill: true,
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderColor: '#3B82F6',
+                            borderWidth: 2,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxTicksLimit: 10
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('Gagal me-render Line Chart:', e);
+            }
+
+            // =============================================
+            // SKRIP UNTUK BAR CHART (Salary per dept)
+            // ============================================= 
+            try {
+                const salaryLabels = @json($salaryLabels);
+                const salaryData = @json($salaryData);
+                const salaryCtx = document.getElementById('salaryByDeptChart').getContext('2d');
+
+                // Ambil palet warna yang sama dari Pie Chart
+                const backgroundColors = [
+                    '#4299E1', '#48BB78', '#F6E05E', '#FC8181', '#805AD5',
+                    '#ED8936', '#4FD1C5', '#F6AD55', '#667EEA', '#718096'
+                ];
+
+                new Chart(salaryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: salaryLabels,
+                        datasets: [{
+                            label: 'Total Gaji',
+                            data: salaryData,
+                            backgroundColor: backgroundColors.slice(0, salaryLabels.length),
+                            borderColor: backgroundColors.map(color => color.slice(0, 7) +
+                                'CC'), // Tambah transparansi
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    // Format angka sumbu Y sebagai mata uang (opsional tapi bagus)
+                                    callback: function(value, index, values) {
+                                        // Tampilkan dalam format 'Jt' (Juta)
+                                        return (value / 1000000) + ' Jt';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false // Sembunyikan legenda, sudah jelas
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    // Format tooltip sebagai Rupiah
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('id-ID', {
+                                                style: 'currency',
+                                                currency: 'IDR',
+                                                maximumFractionDigits: 0
+                                            }).format(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('Gagal me-render Bar Chart:', e);
+            }
+
+        });
+    </script>
 @endsection

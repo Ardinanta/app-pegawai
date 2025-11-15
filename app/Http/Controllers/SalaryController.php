@@ -6,12 +6,30 @@ use App\Models\Salary;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SalaryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $salaries = Salary::with('employee')->latest()->paginate(10);
+        $search = $request->input('search');
+
+        $salaries = Salary::with('employee')
+            ->when($search, function ($query, $term) {
+
+                $query->where(function ($q) use ($term) {
+                    // Cari di kolom tabel 'salaries'
+                    $q->where('bulan', 'like', "%{$term}%");
+                })
+                    // Cari di relasi 'employee'
+                    ->orWhereHas('employee', function ($q) use ($term) {
+                        $q->where('nama_lengkap', 'like', "%{$term}%");
+                    });
+            })
+            ->latest()
+            ->paginate(10)
+            ->appends(['search' => $search]);
+
         return view('salary.index', compact('salaries'));
     }
 
@@ -88,5 +106,13 @@ class SalaryController extends Controller
         $salary->delete();
         return redirect()->route('salaries.index')
             ->with('success', 'Data gaji berhasil dihapus.');
+    }
+
+    public function downloadPdf(Salary $salary)
+    {
+        $salary->load('employee.position', 'employee.department');
+        $pdf = Pdf::loadView('salary.pdf', compact('salary')); // <-- Pastikan 'Pdf' diawali huruf besar
+        $fileName = 'slip-gaji-' . $salary->employee->nama_lengkap . '-' . $salary->bulan . '.pdf';
+        return $pdf->download($fileName);
     }
 }

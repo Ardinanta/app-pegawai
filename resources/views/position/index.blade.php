@@ -10,6 +10,10 @@
         </a>
     </div>
 
+    <x-search-form 
+    :action="route('positions.index')" 
+    placeholder="Cari nama, email, atau departemen..." 
+/>
     {{-- Pesan Sukses --}}
     @if ($message = Session::get('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -31,7 +35,7 @@
             <tbody class="text-gray-600 text-sm font-light">
                 @foreach ($positions as $position)
                 <tr class="border-b border-gray-200 hover:bg-gray-100">
-                    <td class="py-3 px-6 text-left whitespace-nowrap">{{ $loop->iteration }}</td>
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $positions->firstItem() + $loop->index }}</td>
                     <td class="py-3 px-6 text-left">{{ $position->nama_jabatan }}</td>
                     <td class="py-3 px-6 text-left">Rp {{ number_format($position->gaji_pokok, 2, ',', '.') }}</td>
                     <td class="py-3 px-6 text-center">
@@ -46,6 +50,9 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
+    <div class="mt-4">
+            {{ $positions->links() }}
     </div>
 </div>
 @endsection

@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         body {
@@ -26,7 +27,7 @@
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center h-16">
                 <div class="flex-shrink-0">
-                    <a href="{{ url('/') }}" class="text-white text-xl font-bold">StafHub</a>
+                    <a href="{{ url('/') }}" class="text-white text-xl font-bold">App Pegawai</a>
                 </div>
 
                 <div class="hidden md:flex md:items-center md:space-x-8"> 

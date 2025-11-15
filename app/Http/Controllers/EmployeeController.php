@@ -6,12 +6,38 @@ use App\Models\Employee;
 use App\Models\Department;
 use App\Models\Position;
 use Illuminate\Http\Request;
+use App\Exports\EmployeesExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EmployeeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $employees = Employee::with(['department', 'position'])->latest()->paginate(10);
+        $search = $request->input('search');
+
+        $employees = Employee::with(['department', 'position'])
+            ->when($search, function ($query, $term) {
+
+                $query->where(function ($q) use ($term) {
+                    // Cari di kolom tabel 'employees'
+                    $q->where('nama_lengkap', 'like', "%{$term}%")
+                      ->orWhere('email', 'like', "%{$term}%");
+                })
+                // Cari di relasi 'department'
+                ->orWhereHas('department', function ($q) use ($term) {
+                    $q->where('nama_departemen', 'like', "%{$term}%");
+                })
+                // Cari di relasi 'position'
+                ->orWhereHas('position', function ($q) use ($term) {
+                    $q->where('nama_jabatan', 'like', "%{$term}%");
+                }); 
+
+            })
+            ->latest()
+            ->paginate(10)
+            ->appends(['search' => $search]);
+
+        // Path view 'employees.index' (plural)
         return view('employee.index', compact('employees'));
     }
 
@@ -19,6 +45,7 @@ class EmployeeController extends Controller
     {
         $departments = Department::all();
         $positions = Position::all();
+        // Ganti ke 'employees.create' (plural)
         return view('employee.create', compact('departments', 'positions'));
     }
 
@@ -45,6 +72,7 @@ class EmployeeController extends Controller
     {
         $departments = Department::all();
         $positions = Position::all();
+        // Ganti ke 'employees.edit' (plural)
         return view('employee.edit', compact('employee', 'departments', 'positions'));
     }
 
@@ -76,6 +104,7 @@ class EmployeeController extends Controller
 
     public function show(Employee $employee)
     {
+        // Ganti ke 'employees.show' (plural)
         return view('employee.show', compact('employee'));
     }
 }

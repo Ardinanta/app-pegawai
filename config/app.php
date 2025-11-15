@@ -2,6 +2,17 @@
 
 return [
 
+    // 'providers' => [
+    //     // Maatwebsite\Excel\ExcelServiceProvider::class,
+    //     // Barryvdh\DomPDF\ServiceProvider::class,
+
+    // ],
+
+    // 'aliases' => [
+    //     // 'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+    //     // 'Pdf' => Barryvdh\DomPDF\Facade\Pdf::class,
+
+    // ],
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -65,8 +76,7 @@ return [
     |
     */
 
-    'timezone' => env('APP_TIMEZONE', 'UTC'),
-
+    'timezone' => 'Asia/Jakarta',
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

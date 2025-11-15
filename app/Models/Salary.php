@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\Searchable;
 
 class Salary extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
     
     protected $fillable = [
         'karyawan_id',
@@ -16,6 +17,15 @@ class Salary extends Model
         'tunjangan',
         'potongan',
         'total_gaji',
+    ];
+
+    protected $searchable = [
+        'bulan',
+        'gaji_pokok'
+    ];
+
+    protected $searchableRelations = [
+        'employee' => ['nama_lengkap'] 
     ];
 
     public function employee()

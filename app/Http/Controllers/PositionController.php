@@ -7,9 +7,19 @@ use Illuminate\Http\Request;
 
 class PositionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $positions = Position::all();
+        $search = $request->input('search');
+
+        $positions = Position::query() // Mulai kueri
+            ->when($search, function ($query, $term) {
+                // Cari hanya di kolom 'nama_jabatan'
+                $query->where('nama_jabatan', 'like', "%{$term}%");
+            })
+            ->latest() // Mengurutkan dari yang terbaru
+            ->paginate(10) // Menggunakan paginate (bukan 'all()')
+            ->appends(['search' => $search]); // Menjaga 'search' di pagination
+
         return view('position.index', compact('positions'));
     }
 

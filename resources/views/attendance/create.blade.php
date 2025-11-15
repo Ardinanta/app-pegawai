@@ -1,64 +1,134 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-white p-6 rounded-lg shadow-md">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold text-gray-800">Catat Absensi Karyawan</h2>
-        <a href="{{ route('attendances.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-300">
-            Kembali
-        </a>
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-800">
+                Absensi Karyawan ({{ \Carbon\Carbon::now()->translatedFormat('d F Y') }})
+            </h2>
+            <div class="flex space-x-2">
+                <a href="{{ route('attendances.createManual') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-300">
+                    Izin/Sakit
+                </a>
+                <a href="{{ route('attendances.index') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-300">
+                    Kembali ke Riwayat
+                </a>
+            </div>
+        </div>
+
+        {{-- Notifikasi Sukses --}}
+        @if ($message = Session::get('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <span>{{ $message }}</span>
+            </div>
+        @endif
+
+        {{-- Notifikasi Error --}}
+        @if ($message = Session::get('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <span>{{ $message }}</span>
+            </div>
+        @endif
+
+        {{-- Tabel Aksi Massal --}}
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                    <tr>
+                        <th class="py-3 px-6 text-left">Nama Karyawan</th>
+                        <th class="py-3 px-6 text-left">Jabatan</th>
+                        <th class="py-3 px-6 text-center">Status Hari Ini</th>
+                        <th class="py-3 px-6 text-center">Waktu Masuk</th>
+                        <th class="py-3 px-6 text-center">Waktu Keluar</th>
+                        <th class="py-3 px-6 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm font-light">
+
+                    @forelse ($employees as $employee)
+                        @php
+                            $todayAttendance = $employee->attendances->first();
+                        @endphp
+
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-6 text-left font-medium">{{ $employee->nama_lengkap }}</td>
+                            <td class="py-3 px-6 text-left">{{ $employee->position->nama_jabatan }}</td>
+
+                            {{-- Kolom Status --}}
+                            <td class="py-3 px-6 text-center">
+                                @if ($todayAttendance)
+                                    @php
+                                        $status = strtolower($todayAttendance->status_absensi);
+                                        $color = '';
+                                        if ($status == 'hadir') {
+                                            $color = 'bg-green-200 text-green-800';
+                                        } elseif ($status == 'sakit') {
+                                            $color = 'bg-yellow-200 text-yellow-800';
+                                        } elseif ($status == 'izin') {
+                                            $color = 'bg-blue-200 text-blue-800';
+                                        } else {
+                                            $color = 'bg-red-200 text-red-800';
+                                        }
+                                    @endphp
+                                    <span
+                                        class="px-2 py-1 font-semibold leading-tight rounded-full text-xs {{ $color }}">
+                                        {{ ucfirst($status) }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-400">- Belum Absen -</span>
+                                @endif
+                            </td>
+
+                            {{-- Waktu Masuk --}}
+                            <td class="py-3 px-6 text-center">
+                                {{ $todayAttendance && $todayAttendance->waktu_masuk ? \Carbon\Carbon::parse($todayAttendance->waktu_masuk)->format('H:i') : '-' }}
+                            </td>
+
+                            {{-- Waktu Keluar --}}
+                            <td class="py-3 px-6 text-center">
+                                {{ $todayAttendance && $todayAttendance->waktu_keluar ? \Carbon\Carbon::parse($todayAttendance->waktu_keluar)->format('H:i') : '-' }}
+                            </td>
+
+                            {{-- Kolom Aksi (Tombol) --}}
+                            <td class="py-3 px-6 text-center">
+                                <div class="flex items-center justify-center space-x-2">
+                                    @if (!$todayAttendance || !$todayAttendance->waktu_masuk)
+                                        {{-- Tampilkan Tombol HADIR jika belum ada data ATAU belum clock in --}}
+                                        <form action="{{ route('attendances.clockIn', $employee->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                class="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded text-xs transition duration-300">
+                                                Hadir
+                                            </button>
+                                        </form>
+                                    @elseif ($todayAttendance && $todayAttendance->waktu_masuk && !$todayAttendance->waktu_keluar)
+                                        {{-- Tampilkan Tombol KELUAR jika sudah clock in TAPI belum clock out --}}
+                                        <form action="{{ route('attendances.clockOut', $employee->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-xs transition duration-300">
+                                                Keluar
+                                            </button>
+                                        </form>
+                                    @else
+                                        {{-- Sudah Selesai (Clock in dan Clock out) --}}
+                                        <span class="text-gray-400 text-xs font-semibold">Selesai</span>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-4">Belum ada data karyawan.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <div class="mt-4">
+                {{ $employees->links() }}
+            </div>
+        </div>
     </div>
-
-    @if ($errors->any())
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <strong>Ups!</strong> Terjadi kesalahan:<br><br>
-            <ul class="list-disc pl-5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <form action="{{ route('attendances.store') }}" method="POST">
-        @csrf
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label for="karyawan_id" class="block text-gray-700 text-sm font-bold mb-2">Pilih Karyawan:</label>
-                <select name="karyawan_id" id="karyawan_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    <option value="">-- Pilih Karyawan --</option>
-                    @foreach($employees as $employee)
-                        <option value="{{ $employee->id }}" {{ old('karyawan_id') == $employee->id ? 'selected' : '' }}>{{ $employee->nama_lengkap }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="waktu_masuk" class="block text-gray-700 text-sm font-bold mb-2">Waktu Masuk (Jika Hadir):</label>
-                <input type="time" name="waktu_masuk" id="waktu_masuk" value="{{ old('waktu_masuk') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-            <div>
-                <label for="status_absensi" class="block text-gray-700 text-sm font-bold mb-2">Status Kehadiran:</label>
-                <select name="status_absensi" id="status_absensi" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    @foreach($statuses as $status)
-                        <option value="{{ $status }}" {{ old('status_absensi') == $status ? 'selected' : '' }}>{{ $status }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="waktu_keluar" class="block text-gray-700 text-sm font-bold mb-2">Waktu Keluar (Opsional):</label>
-                <input type="time" name="waktu_keluar" id="waktu_keluar" value="{{ old('waktu_keluar') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-            <div>
-                <label for="tanggal" class="block text-gray-700 text-sm font-bold mb-2">Tanggal:</label>
-                <input type="date" name="tanggal" id="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-        </div>
-
-        <div class="text-right mt-6">
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300">
-                Simpan
-            </button>
-        </div>
-    </form>
-</div>
 @endsection
