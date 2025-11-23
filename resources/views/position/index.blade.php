@@ -5,8 +5,9 @@
     {{-- Header --}}
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-bold text-gray-800">Daftar Jabatan</h2>
-        <a href="{{ route('positions.create') }}" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300">
-            + Tambah Jabatan
+        <a href="{{ route('positions.create') }}" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Tambah Jabatan
         </a>
     </div>
 
@@ -39,11 +40,17 @@
                     <td class="py-3 px-6 text-left">{{ $position->nama_jabatan }}</td>
                     <td class="py-3 px-6 text-left">Rp {{ number_format($position->gaji_pokok, 2, ',', '.') }}</td>
                     <td class="py-3 px-6 text-center">
-                        <form action="{{ route('positions.destroy', $position->id) }}" method="POST" class="flex items-center justify-center space-x-2">
-                            <a href="{{ route('positions.edit', $position->id) }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded text-xs transition duration-300">Edit</a>
+                        <form action="{{ route('positions.destroy', $position->id) }}" method="POST" class="flex items-center justify-center gap-3">
+                            <a href="{{ route('positions.edit', $position->id) }}" class="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-0.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Edit
+                            </a>
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-xs transition duration-300" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
+                            <button type="submit" class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-0.5" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                Delete
+                            </button>
                         </form>
                     </td>
                 </tr>

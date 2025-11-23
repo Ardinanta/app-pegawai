@@ -18,10 +18,8 @@ class SalaryController extends Controller
             ->when($search, function ($query, $term) {
 
                 $query->where(function ($q) use ($term) {
-                    // Cari di kolom tabel 'salaries'
                     $q->where('bulan', 'like', "%{$term}%");
                 })
-                    // Cari di relasi 'employee'
                     ->orWhereHas('employee', function ($q) use ($term) {
                         $q->where('nama_lengkap', 'like', "%{$term}%");
                     });

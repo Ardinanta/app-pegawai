@@ -10,7 +10,7 @@ class DepartmentController extends Controller
     public function index(Request $request)
     {
         $departments = Department::query()
-            ->search($request) // <-- 3. PANGGIL SCOPE-NYA DI SINI
+            ->search($request)
             ->latest()
             ->paginate(10)
             ->appends($request->query());

@@ -11,14 +11,13 @@ class PositionController extends Controller
     {
         $search = $request->input('search');
 
-        $positions = Position::query() // Mulai kueri
+        $positions = Position::query()
             ->when($search, function ($query, $term) {
-                // Cari hanya di kolom 'nama_jabatan'
                 $query->where('nama_jabatan', 'like', "%{$term}%");
             })
-            ->latest() // Mengurutkan dari yang terbaru
-            ->paginate(10) // Menggunakan paginate (bukan 'all()')
-            ->appends(['search' => $search]); // Menjaga 'search' di pagination
+            ->latest() 
+            ->paginate(10)
+            ->appends(['search' => $search]); 
 
         return view('position.index', compact('positions'));
     }

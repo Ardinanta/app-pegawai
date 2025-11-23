@@ -14,7 +14,6 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Data untuk Kartu Statistik (Sudah ada)
         $totalEmployees = Employee::where('status', 'aktif')->count();
         $totalDepartments = Department::count();
         $totalPositions = Position::count();
@@ -73,7 +72,7 @@ class DashboardController extends Controller
             ->select('status_absensi', DB::raw('count(*) as total'))
             ->groupBy('status_absensi')
             ->get()
-            ->pluck('total', 'status_absensi'); // Hasil: ['hadir' => 17, 'sakit' => 1, 'izin' => 1]
+            ->pluck('total', 'status_absensi');
         // EMPLOYEES ABSENT END
 
 

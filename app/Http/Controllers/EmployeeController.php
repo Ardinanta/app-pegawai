@@ -19,15 +19,14 @@ class EmployeeController extends Controller
             ->when($search, function ($query, $term) {
 
                 $query->where(function ($q) use ($term) {
-                    // Cari di kolom tabel 'employees'
                     $q->where('nama_lengkap', 'like', "%{$term}%")
-                      ->orWhere('email', 'like', "%{$term}%");
+                    ->orWhere('email', 'like', "%{$term}%");
                 })
-                // Cari di relasi 'department'
+
                 ->orWhereHas('department', function ($q) use ($term) {
                     $q->where('nama_departemen', 'like', "%{$term}%");
                 })
-                // Cari di relasi 'position'
+
                 ->orWhereHas('position', function ($q) use ($term) {
                     $q->where('nama_jabatan', 'like', "%{$term}%");
                 }); 
@@ -37,7 +36,6 @@ class EmployeeController extends Controller
             ->paginate(10)
             ->appends(['search' => $search]);
 
-        // Path view 'employees.index' (plural)
         return view('employee.index', compact('employees'));
     }
 
@@ -45,7 +43,7 @@ class EmployeeController extends Controller
     {
         $departments = Department::all();
         $positions = Position::all();
-        // Ganti ke 'employees.create' (plural)
+
         return view('employee.create', compact('departments', 'positions'));
     }
 
@@ -72,7 +70,7 @@ class EmployeeController extends Controller
     {
         $departments = Department::all();
         $positions = Position::all();
-        // Ganti ke 'employees.edit' (plural)
+
         return view('employee.edit', compact('employee', 'departments', 'positions'));
     }
 
@@ -104,7 +102,6 @@ class EmployeeController extends Controller
 
     public function show(Employee $employee)
     {
-        // Ganti ke 'employees.show' (plural)
         return view('employee.show', compact('employee'));
     }
 }
