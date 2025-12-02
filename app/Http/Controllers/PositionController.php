@@ -11,15 +11,24 @@ class PositionController extends Controller
     {
         $search = $request->input('search');
 
-        $positions = Position::query()
+        // Query untuk data
+        $positionsQuery = Position::query()
             ->when($search, function ($query, $term) {
                 $query->where('nama_jabatan', 'like', "%{$term}%");
-            })
+            });
+
+        // Hitung statistik dari keseluruhan data (sebelum pagination)
+        $totalPositions = $positionsQuery->count();
+        $maxSalary = $positionsQuery->max('gaji_pokok') ?? 0;
+        $minSalary = $positionsQuery->min('gaji_pokok') ?? 0;
+
+        // Ambil data dengan pagination
+        $positions = $positionsQuery
             ->latest() 
             ->paginate(10)
             ->appends(['search' => $search]); 
 
-        return view('position.index', compact('positions'));
+        return view('position.index', compact('positions', 'totalPositions', 'maxSalary', 'minSalary'));
     }
 
     public function create()

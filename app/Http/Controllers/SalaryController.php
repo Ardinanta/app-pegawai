@@ -6,6 +6,7 @@ use App\Models\Salary;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SalaryController extends Controller
@@ -14,21 +15,34 @@ class SalaryController extends Controller
     {
         $search = $request->input('search');
 
-        $salaries = Salary::with('employee')
-            ->when($search, function ($query, $term) {
+        // Ambil bulan terbaru dari semua data gaji
+        $latestMonth = Salary::max('bulan');
 
+        // Query untuk data yang akan ditampilkan (semua gaji di bulan terbaru)
+        $salariesQuery = Salary::with('employee.position')
+            ->where('bulan', $latestMonth)
+            ->when($search, function ($query, $term) {
                 $query->where(function ($q) use ($term) {
                     $q->where('bulan', 'like', "%{$term}%");
                 })
-                    ->orWhereHas('employee', function ($q) use ($term) {
-                        $q->where('nama_lengkap', 'like', "%{$term}%");
-                    });
-            })
-            ->latest()
+                ->orWhereHas('employee', function ($q) use ($term) {
+                    $q->where('nama_lengkap', 'like', "%{$term}%");
+                });
+            });
+
+        // Hitung statistik dari keseluruhan data (sebelum pagination)
+        $totalGaji = $salariesQuery->sum('total_gaji');
+        $totalTunjangan = $salariesQuery->sum('tunjangan');
+        $totalPotongan = $salariesQuery->sum('potongan');
+        $jumlahKaryawan = $salariesQuery->count();
+
+        // Ambil data dengan pagination
+        $salaries = $salariesQuery
+            ->latest('bulan')
             ->paginate(10)
             ->appends(['search' => $search]);
 
-        return view('salary.index', compact('salaries'));
+        return view('salary.index', compact('salaries', 'totalGaji', 'totalTunjangan', 'totalPotongan', 'jumlahKaryawan', 'latestMonth'));
     }
 
     public function create()

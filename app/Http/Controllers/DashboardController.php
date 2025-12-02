@@ -8,7 +8,7 @@ use App\Models\Position;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB; // <-- TAMBAHKAN INI
+use Illuminate\Support\Facades\DB; 
 
 class DashboardController extends Controller
 {
@@ -45,21 +45,21 @@ class DashboardController extends Controller
         // LINE CHART END
 
         // SALARY PER DEPT 
-        $lastMonth = Carbon::now()->subMonth()->format('Y-m'); // Format: '2025-10'
+        $lastMonth = Carbon::now()->subMonth()->format('Y-m'); 
         $salaryByDept = Department::withSum(['salaries' => function ($query) use ($lastMonth) {
             $query->where('bulan', $lastMonth);
-        }], 'total_gaji') // <-- Hanya 'salaries'
-            ->orderBy('salaries_sum_total_gaji', 'desc') // <-- Ubah nama kolom 'order by'
+        }], 'total_gaji') 
+            ->orderBy('salaries_sum_total_gaji', 'desc') 
             ->get();
 
         $salaryLabels = $salaryByDept->pluck('nama_departemen');
-        $salaryData = $salaryByDept->pluck('salaries_sum_total_gaji'); // <-- Ubah nama kolom 'pluck'
+        $salaryData = $salaryByDept->pluck('salaries_sum_total_gaji'); 
         // SALARY PER DEPT END
 
         // EMPLOYEES ABSENT
         $today = Carbon::today()->toDateString();
         $totalEmployees = Employee::where('status', 'aktif')->count();
-        // ... (Query untuk 3 Chart Anda) ...
+        // 
 
         // 1. Data untuk Widget Kiri (Karyawan Tidak Hadir)
         $absentToday = Attendance::with(['employee.position', 'employee.department'])

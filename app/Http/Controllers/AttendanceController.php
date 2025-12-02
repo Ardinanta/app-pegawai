@@ -14,7 +14,15 @@ class AttendanceController extends Controller
     {
         $search = $request->input('search');
 
+        // Ambil bulan terbaru dari semua data absensi
+        $latestMonth = Attendance::selectRaw('DATE_FORMAT(tanggal, "%Y-%m") as month')
+            ->orderBy('tanggal', 'desc')
+            ->value('month');
+
         $attendances = Attendance::with('employee')
+            ->when($latestMonth, function ($query) use ($latestMonth) {
+                $query->whereRaw('DATE_FORMAT(tanggal, "%Y-%m") = ?', [$latestMonth]);
+            })
             ->when($search, function ($query, $term) {
                 $query->where(function ($q) use ($term) {
                     $q->where('tanggal', 'like', "%{$term}%")
@@ -28,7 +36,7 @@ class AttendanceController extends Controller
             ->paginate(15)
             ->appends(['search' => $search]);
 
-        return view('attendance.index', compact('attendances'));
+        return view('attendance.index', compact('attendances', 'latestMonth'));
     }
 
     public function create(Request $request)
@@ -50,9 +58,36 @@ class AttendanceController extends Controller
     public function createManual()
     {
         $employees = Employee::orderBy('nama_lengkap')->get();
-        $statuses = ['Sakit', 'Izin', 'Alpha'];
+        $statuses = ['sakit', 'izin', 'alpha'];
 
         return view('attendance.create_manual', compact('employees', 'statuses'));
+    }
+
+    public function storeManual(Request $request)
+    {
+        $request->validate([
+            'karyawan_id' => [
+                'required',
+                Rule::unique('attendances')->where(function ($query) use ($request) {
+                    return $query->where('tanggal', $request->tanggal);
+                }),
+            ],
+            'tanggal' => 'required|date',
+            'status_absensi' => 'required|in:sakit,izin,alpha',
+        ], [
+            'karyawan_id.unique' => 'Karyawan ini sudah memiliki data absensi pada tanggal tersebut.'
+        ]);
+
+        Attendance::create([
+            'karyawan_id' => $request->karyawan_id,
+            'tanggal' => $request->tanggal,
+            'status_absensi' => $request->status_absensi,
+            'waktu_masuk' => null,
+            'waktu_keluar' => null,
+        ]);
+
+        return redirect()->route('attendances.index')
+            ->with('success', 'Data absensi berhasil ditambahkan.');
     }
 
     public function store(Request $request)
@@ -65,8 +100,8 @@ class AttendanceController extends Controller
                 }),
             ],
             'tanggal' => 'required|date',
-            'status_absensi' => 'required|in:Hadir,Sakit,Izin,Alpha',
-            'waktu_masuk' => 'required_if:status_absensi,Hadir|nullable|date_format:H:i',
+            'status_absensi' => 'required|in:hadir,sakit,izin,alpha',
+            'waktu_masuk' => 'required_if:status_absensi,hadir|nullable|date_format:H:i',
             'waktu_keluar' => 'nullable|date_format:H:i|after:waktu_masuk',
         ], [
             'karyawan_id.unique' => 'Karyawan ini sudah memiliki data absensi pada tanggal tersebut.'
@@ -81,7 +116,7 @@ class AttendanceController extends Controller
     public function edit(Attendance $attendance)
     {
         $employees = Employee::orderBy('nama_lengkap')->get();
-        $statuses = ['Hadir', 'Sakit', 'Izin', 'Alpha'];
+        $statuses = ['hadir', 'sakit', 'izin', 'alpha'];
         return view('attendance.edit', compact('attendance', 'employees', 'statuses'));
     }
 
@@ -95,15 +130,15 @@ class AttendanceController extends Controller
                 })->ignore($attendance->id),
             ],
             'tanggal' => 'required|date',
-            'status_absensi' => 'required|in:Hadir,Sakit,Izin,Alpha',
-            'waktu_masuk' => 'required_if:status_absensi,Hadir|nullable|date_format:H:i',
+            'status_absensi' => 'required|in:hadir,sakit,izin,alpha',
+            'waktu_masuk' => 'required_if:status_absensi,hadir|nullable|date_format:H:i',
             'waktu_keluar' => 'nullable|date_format:H:i|after:waktu_masuk',
         ], [
             'karyawan_id.unique' => 'Karyawan ini sudah memiliki data absensi pada tanggal tersebut.'
         ]);
 
         $data = $request->all();
-        if ($request->status_absensi !== 'Hadir') {
+        if ($request->status_absensi !== 'hadir') {
             $data['waktu_masuk'] = null;
             $data['waktu_keluar'] = null;
         }

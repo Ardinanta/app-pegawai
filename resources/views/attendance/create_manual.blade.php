@@ -22,7 +22,7 @@
         </div>
     @endif
 
-    <form action="{{ route('attendances.store') }}" method="POST">
+    <form action="{{ route('attendances.store.manual') }}" method="POST">
         @csrf
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -41,14 +41,12 @@
             <div class="md:col-span-2">
                 <label for="status_absensi" class="block text-gray-700 text-sm font-bold mb-2">Status Kehadiran:</label>
                 <select name="status_absensi" id="status_absensi" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">-- Pilih Status --</option>
                     @foreach($statuses as $status)
-                        <option value="{{ $status }}" {{ old('status_absensi') == $status ? 'selected' : '' }}>{{ $status }}</option>
+                        <option value="{{ $status }}" {{ old('status_absensi') == $status ? 'selected' : '' }}>{{ ucfirst($status) }}</option>
                     @endforeach
                 </select>
             </div>
-
-            <input type="hidden" name="waktu_masuk" value="">
-            <input type="hidden" name="waktu_keluar" value="">
         </div>
 
         <div class="text-right mt-6">

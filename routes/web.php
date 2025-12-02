@@ -1,47 +1,46 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\PositionController;
+use App\Http\Controllers\SalaryController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AttendanceMonitoringController;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\{
-    DashboardController, EmployeeController, DepartmentController, PositionController, AttendanceController, SalaryController, AttendanceMonitoringController, AuthController
-};
+require __DIR__.'/auth.php'; // Breeze auth routes
 
-use App\Models\{
-    Employee, Department, Position, Attendance, Salary
-};
-
-// Authentication Routes (Guest only)
-Route::middleware('guest')->group(function () {
-    Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('login', [AuthController::class, 'login']);
-    Route::get('register', [AuthController::class, 'showRegisterForm'])->name('register');
-    Route::post('register', [AuthController::class, 'register']);
+Route::get('/', function () {
+    return redirect()->route('login');
 });
 
-// Logout Route (Authenticated only)
-Route::middleware('auth')->group(function () {
-    Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+// Protected routes with auth middleware
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-    // Protected Routes - All routes below require authentication
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    // Employee routes
     Route::resource('employees', EmployeeController::class);
+    
+    // Department routes
     Route::resource('departments', DepartmentController::class);
+    
+    // Position routes
     Route::resource('positions', PositionController::class);
-    Route::resource('attendances', AttendanceController::class);
+    
+    // Salary routes
     Route::resource('salaries', SalaryController::class);
+    Route::get('salaries/{salary}/download-pdf', [SalaryController::class, 'downloadPdf'])->name('salaries.downloadPdf');
+    Route::get('salaries/{salary}/print', [SalaryController::class, 'print'])->name('salaries.print');
     
-    Route::get('/salaries/{salary}/download-pdf', 
-        [App\Http\Controllers\SalaryController::class, 'downloadPdf'])
-        ->name('salaries.downloadPdf');
-    Route::get('/employees/export/excel', 
-        [App\Http\Controllers\EmployeeController::class, 'exportExcel'])
-        ->name('employees.exportExcel');
-        
-    Route::post('attendances/clock-in/{employee}', [AttendanceController::class, 'clockIn'])->name('attendances.clockIn');
-    Route::post('attendances/clock-out/{employee}', [AttendanceController::class, 'clockOut'])->name('attendances.clockOut');
-    Route::get('attendances/manual/create', [AttendanceController::class, 'createManual'])->name('attendances.createManual');
+    // Attendance routes
+    Route::get('attendances/create', [AttendanceController::class, 'create'])->name('attendances.create');
+    Route::post('attendances/{employee}/clock-in', [AttendanceController::class, 'clockIn'])->name('attendances.clock-in');
+    Route::post('attendances/{employee}/clock-out', [AttendanceController::class, 'clockOut'])->name('attendances.clock-out');
+    Route::get('attendances/manual/create', [AttendanceController::class, 'createManual'])->name('attendances.create.manual');
+    Route::post('attendances/manual', [AttendanceController::class, 'storeManual'])->name('attendances.store.manual');
+    Route::resource('attendances', AttendanceController::class)->except(['create']);
     
+    // Attendance monitoring
     Route::get('attendance-monitoring', [AttendanceMonitoringController::class, 'index'])->name('attendance-monitoring.index');
 });
-?>
-
